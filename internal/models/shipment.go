@@ -1,3 +1,5 @@
 package models
 
-type Shipment struct{}
+type Shipment struct {
+	Barcode string
+}
