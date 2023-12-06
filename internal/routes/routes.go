@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,20 +14,19 @@ import (
 func CreateRoute() *mux.Router {
 	r := mux.NewRouter()
 
-	r.Use(logMiddlware)
-
+	r.Use(errorHandlerMiddleware, logMiddleware)
 	//Add Shipment route
-	r.HandleFunc("/api/shipment/{id}", shipment.CheckShipments).Methods("GET")
 	r.Handle("/api/shipment", checkQuantity(shipment.CreateShipments)).Methods("POST")
+	r.HandleFunc("/api/shipment/{barcode}", shipment.CheckShipments).Methods("GET")
 
 	return r
 }
 
-func logMiddlware(next http.Handler) http.Handler {
+func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		log.Printf("%s - %s (%s) Time beetween excecuting: %v \n", r.Method, r.URL.Path, r.RemoteAddr, time.Since(start).Milliseconds())
+		log.Printf("%s - %s (%s) Time beetween excecuting: %v \n", r.Method, r.URL.Path, r.RemoteAddr, time.Since(start))
 	})
 }
 
@@ -37,8 +37,19 @@ func checkQuantity(f http.HandlerFunc) http.Handler {
 			log.Panic(err)
 		}
 		if quantity < 0 {
-			log.Fatal("quantity lower 0")
+			log.Panic("quantity lower 0")
 		}
 		f(w, r)
+	})
+}
+
+func errorHandlerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Error(w, fmt.Sprintf("panic on the server: %s", err), http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
 	})
 }

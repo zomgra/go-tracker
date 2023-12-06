@@ -5,6 +5,8 @@ go 1.21.3
 require github.com/golang-migrate/migrate/v4 v4.16.2
 
 require (
+	github.com/bits-and-blooms/bitset v1.10.0 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gofor-little/env v1.0.16 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

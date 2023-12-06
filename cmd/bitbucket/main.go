@@ -23,5 +23,5 @@ func main() {
 	}
 	db.CreateConnection(&opts)
 
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe("localhost:8000", r))
 }

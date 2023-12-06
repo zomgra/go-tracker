@@ -1,5 +1,3 @@
 CREATE TABLE IF NOT EXISTS shipments (
-    Id INT PRIMARY KEY serial,
-    Barcode varchar(24) unique NOT NULL
-    CreateAt TIMESTAMP NULL
+    Barcode varchar(24) NOT NULL
 )

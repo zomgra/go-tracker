@@ -9,7 +9,7 @@ import (
 
 func CheckShipments(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	log.Println(params["id"])
+	log.Println(params["barcode"])
 }
 func CreateShipments(w http.ResponseWriter, r *http.Request) {
 	quantity := r.URL.Query().Get("quantity")
