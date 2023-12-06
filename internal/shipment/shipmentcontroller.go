@@ -8,15 +8,25 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/zomgra/bitbucket/internal/interfaces"
 	"github.com/zomgra/bitbucket/internal/models"
 	bloomfilter "github.com/zomgra/bitbucket/internal/services/bloom"
+	shipmentservice "github.com/zomgra/bitbucket/internal/services/shipment"
 )
+
+func getRepository() interfaces.Repository {
+
+	if bloomfilter.Repository.OnLoad {
+		return shipmentservice.Repository
+	}
+	return bloomfilter.Repository
+}
 
 func CheckShipments(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
 
-	ok := bloomfilter.CheckShipment(barcode)
+	ok := getRepository().CheckShipment(barcode)
 
 	if ok {
 		returnJson(w, ok, 200)
@@ -35,7 +45,7 @@ func CreateShipments(w http.ResponseWriter, r *http.Request) {
 
 		s := models.Shipment{}
 		s.GenerateShipment()
-		bloomfilter.AddShipment(s)
+		getRepository().AddShipment(s)
 		shipments = append(shipments, s)
 	}
 

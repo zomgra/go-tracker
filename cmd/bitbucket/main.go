@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zomgra/bitbucket/internal/routes"
+	bloomfilter "github.com/zomgra/bitbucket/internal/services/bloom"
 	"github.com/zomgra/bitbucket/pkg/db"
 )
 
@@ -22,6 +23,8 @@ func main() {
 		Database: os.Getenv("DB_DATABASE"),
 	}
 	db.CreateConnection(&opts)
+
+	bloomfilter.Repository.InjectFromDB()
 
 	log.Fatal(http.ListenAndServe("localhost:8000", r))
 }
