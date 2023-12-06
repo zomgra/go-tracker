@@ -1,5 +1,0 @@
-package shipment
-
-func AddShipment() {
-
-}
