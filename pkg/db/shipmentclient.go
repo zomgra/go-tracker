@@ -2,8 +2,8 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/bits-and-blooms/bloom/v3"
 )
@@ -31,19 +31,24 @@ func SelectShipment(barcode string) (bool, error) {
 
 func InjectDataTo(filter *bloom.BloomFilter) {
 
-	var cursorName string = "get_data_cursor()"
-	query := fmt.Sprintf("SELECT * FROM %s AS result;", cursorName)
-	rows, err := Instance.db.Query(query)
-	defer rows.Close()
-
+	tx, err := Instance.db.Begin()
+	query := "DECLARE cursor_shipment CURSOR FOR SELECT * FROM shipments;"
+	_, err = tx.Exec(query)
 	if err != nil {
-		log.Fatalf("Error fetching rows: %v\n", err)
+		log.Fatal("error creating cursor: ", err)
 	}
+
+	// Выполняем FETCH для извлечения данных
+	rows, err := tx.Query("FETCH ALL FROM cursor_shipment;")
+	if err != nil {
+		log.Fatal("error fetching using cursor: ", err)
+	}
+	defer rows.Close()
 	for rows.Next() {
 		var barcode string
 		rows.Scan(&barcode)
-		log.Print(barcode)
 		bytes, _ := json.Marshal(barcode)
 		filter.Add(bytes)
 	}
+	time.Sleep(5 * time.Second)
 }

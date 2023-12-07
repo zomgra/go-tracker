@@ -20,13 +20,14 @@ type BloomFilterRepository struct {
 	OnLoad bool
 }
 
-var Repository BloomFilterRepository
+var Repository BloomFilterRepository = BloomFilterRepository{OnLoad: true}
 
 var filter *bloom.BloomFilter = bloom.NewWithEstimates(1000000, 0.01)
 
 func (b BloomFilterRepository) AddShipment(s models.Shipment) {
 	newBarcodeBytes, _ := json.Marshal(s.Barcode)
 	filter.Add([]byte(newBarcodeBytes))
+	log.Println("Use bloomfilter")
 
 	// TODO : Change it so that it is not necessary to use ShipmentRepository
 
@@ -34,12 +35,14 @@ func (b BloomFilterRepository) AddShipment(s models.Shipment) {
 }
 func (b BloomFilterRepository) CheckShipment(barcode string) bool {
 	shipmentBarcodeBytes, _ := json.Marshal(barcode)
+
 	existInBloom := filter.Test(shipmentBarcodeBytes)
 	if !existInBloom {
 		log.Panic(errors.New("not exist in bloom filter"))
 	}
 
 	// TODO : Change it so that it is not necessary to use ShipmentRepository
+	log.Println("Use bloomfilter")
 
 	ok := shipmentservice.ShipmentRepository{}.CheckShipment(barcode)
 	if ok {

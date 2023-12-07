@@ -24,7 +24,14 @@ func main() {
 	}
 	db.CreateConnection(&opts)
 
-	bloomfilter.Repository.InjectFromDB()
+	go func() {
+		bloomfilter.Repository.InjectFromDB()
+	}()
 
-	log.Fatal(http.ListenAndServe("localhost:8000", r))
+	go func() {
+		log.Fatal(http.ListenAndServe("localhost:8000", r))
+	}()
+
+	select {}
+
 }

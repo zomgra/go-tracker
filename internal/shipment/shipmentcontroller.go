@@ -25,7 +25,6 @@ func getRepository() interfaces.Repository {
 func CheckShipments(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-
 	ok := getRepository().CheckShipment(barcode)
 
 	if ok {
@@ -42,14 +41,14 @@ func CreateShipments(w http.ResponseWriter, r *http.Request) {
 	log.Println(quantity)
 	var shipments []models.Shipment
 	for i := 0; i < quantity; i++ {
-
 		s := models.Shipment{}
 		s.GenerateShipment()
 		getRepository().AddShipment(s)
 		shipments = append(shipments, s)
+		log.Println(i)
 	}
-
 	returnJson(w, shipments, 201)
+	//shipments = nil
 }
 
 func returnJson(w http.ResponseWriter, v interface{}, status int) {
