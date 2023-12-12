@@ -11,6 +11,7 @@ type ShipmentService struct {
 	repository ShipmentRepository
 }
 type ShipmentRepository struct {
+	//client *sql.DB
 }
 
 var Repository ShipmentRepository

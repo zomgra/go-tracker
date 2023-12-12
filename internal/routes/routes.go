@@ -19,6 +19,9 @@ func CreateRoute() *mux.Router {
 	r.Handle("/api/shipment", checkQuantity(shipment.CreateShipments)).Methods("POST")
 	r.HandleFunc("/api/shipment/{barcode}", shipment.CheckShipments).Methods("GET")
 
+	// Prometheus
+	//r.Handle("/metrics", promhttp.Handler())
+
 	return r
 }
 

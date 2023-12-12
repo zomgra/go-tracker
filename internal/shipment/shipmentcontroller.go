@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zomgra/bitbucket/internal/interfaces"
 	"github.com/zomgra/bitbucket/internal/models"
+
 	bloomfilter "github.com/zomgra/bitbucket/internal/services/bloom"
 	shipmentservice "github.com/zomgra/bitbucket/internal/services/shipment"
 )
@@ -33,13 +34,13 @@ func CheckShipments(w http.ResponseWriter, r *http.Request) {
 		returnJson(w, "not found shipment", 404)
 	}
 }
+
 func CreateShipments(w http.ResponseWriter, r *http.Request) {
 	quantity, err := strconv.Atoi(r.URL.Query().Get("quantity"))
 	if err != nil {
 		http.Error(w, "Bad quantity params", http.StatusBadRequest)
 	}
-	log.Println(quantity)
-	var shipments []models.Shipment
+	shipments := make([]models.Shipment, 0)
 	for i := 0; i < quantity; i++ {
 		s := models.Shipment{}
 		s.GenerateShipment()

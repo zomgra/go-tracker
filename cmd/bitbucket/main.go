@@ -22,6 +22,7 @@ func main() {
 		Addr:     os.Getenv("DB_ADDR"),
 		Database: os.Getenv("DB_DATABASE"),
 	}
+
 	db.CreateConnection(&opts)
 
 	go func() {
