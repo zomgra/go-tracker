@@ -6,7 +6,7 @@ import (
 
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/stretchr/testify/require"
-	"github.com/zomgra/bitbucket/utils"
+	"github.com/zomgra/tracker/utils"
 )
 
 func createShipmentTest(t *testing.T, barcode string) {

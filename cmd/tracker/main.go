@@ -6,8 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	bloomfilter "github.com/zomgra/bitbucket/internal/bloom"
-	"github.com/zomgra/bitbucket/internal/shipment"
+	bloomfilter "github.com/zomgra/tracker/internal/bloom"
+	"github.com/zomgra/tracker/internal/shipment"
 )
 
 func main() {

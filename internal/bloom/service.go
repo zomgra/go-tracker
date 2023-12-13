@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/bits-and-blooms/bloom/v3"
-	"github.com/zomgra/bitbucket/internal/models"
-	"github.com/zomgra/bitbucket/pkg/db"
+	"github.com/zomgra/tracker/internal/models"
+	"github.com/zomgra/tracker/pkg/db"
 )
 
 // TODO : Redesign services on interfaces, for using once if other unhealty

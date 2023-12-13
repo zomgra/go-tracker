@@ -1,6 +1,6 @@
 package models
 
-import "github.com/zomgra/bitbucket/utils"
+import "github.com/zomgra/tracker/utils"
 
 type Shipment struct {
 	Barcode string

@@ -1,4 +1,4 @@
-module github.com/zomgra/bitbucket
+module github.com/zomgra/tracker
 
 go 1.21.3
 

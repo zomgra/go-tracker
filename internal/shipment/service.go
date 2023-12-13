@@ -3,8 +3,8 @@ package shipment
 import (
 	"log"
 
-	"github.com/zomgra/bitbucket/internal/models"
-	"github.com/zomgra/bitbucket/pkg/db"
+	"github.com/zomgra/tracker/internal/models"
+	"github.com/zomgra/tracker/pkg/db"
 )
 
 type ShipmentService struct {

@@ -1,6 +1,6 @@
 package interfaces
 
-import "github.com/zomgra/bitbucket/internal/models"
+import "github.com/zomgra/tracker/internal/models"
 
 type Repository interface {
 	AddShipment(models.Shipment)

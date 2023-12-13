@@ -8,10 +8,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/zomgra/bitbucket/internal/interfaces"
-	"github.com/zomgra/bitbucket/internal/models"
+	"github.com/zomgra/tracker/internal/interfaces"
+	"github.com/zomgra/tracker/internal/models"
 
-	bloomfilter "github.com/zomgra/bitbucket/internal/bloom"
+	bloomfilter "github.com/zomgra/tracker/internal/bloom"
 )
 
 func getRepository() interfaces.Repository {
