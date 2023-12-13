@@ -22,11 +22,15 @@ func NewHandler(bloomfilter interfaces.Repository, shipmentservice interfaces.Re
 }
 
 func getRepository(handler *ShipmentHandler) interfaces.Repository {
-	return handler.bloomfilter
+	if handler.bloomfilter.OnLoad() {
+		return handler.shipmentservice
+	} else {
+		return handler.bloomfilter
+	}
 }
 
 func (h *ShipmentHandler) CheckShipments(w http.ResponseWriter, r *http.Request) {
-	log.Println("CreateShipments: Before handling the request")
+	log.Println(h.bloomfilter.OnLoad())
 
 	params := mux.Vars(r)
 	barcode := params["barcode"]
@@ -53,8 +57,12 @@ func (s *ShipmentHandler) CreateShipments(w http.ResponseWriter, r *http.Request
 		shipments = append(shipments, ship)
 		log.Println(i)
 	}
+	// if len(shipments) > 0 {
 	returnJson(w, shipments, 201)
-	//shipments = nil
+	// } else {
+	// 	returnJson(w, shipments, 404)
+	// }
+
 }
 
 func returnJson(w http.ResponseWriter, v interface{}, status int) {

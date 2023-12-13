@@ -43,11 +43,8 @@ func checkQuantity(f http.HandlerFunc) http.Handler {
 			return
 		}
 
-		// Проверка на nil перед вызовом хендлера
 		if f != nil {
-			log.Println("checkQuantity middleware: Before calling handler function")
 			f(w, r)
-			log.Println("checkQuantity middleware: After calling handler function")
 		} else {
 			log.Println("checkQuantity middleware: Handler function is nil")
 		}

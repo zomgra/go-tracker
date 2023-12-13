@@ -17,7 +17,11 @@ func NewRepository() *ShipmentRepository {
 	return &ShipmentRepository{}
 }
 
-func (r ShipmentRepository) AddShipment(s models.Shipment) {
+func (r *ShipmentRepository) OnLoad() bool {
+	return false
+}
+
+func (r *ShipmentRepository) AddShipment(s models.Shipment) {
 	err := db.InsertShipment(s.Barcode)
 	log.Println("Use shipment ")
 	if err != nil {
@@ -25,7 +29,7 @@ func (r ShipmentRepository) AddShipment(s models.Shipment) {
 	}
 }
 
-func (r ShipmentRepository) CheckShipment(barcode string) bool {
+func (r *ShipmentRepository) CheckShipment(barcode string) bool {
 	ok, err := db.ExistShipment(barcode)
 	if err != nil {
 		log.Panic("problem with checking: ", err)
@@ -34,6 +38,6 @@ func (r ShipmentRepository) CheckShipment(barcode string) bool {
 
 	return ok
 }
-func (r ShipmentRepository) InjectFromDB() {
+func (r *ShipmentRepository) InjectFromDB() {
 	log.Fatal("in shipment repository should not use injecting from db")
 }
