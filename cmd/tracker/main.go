@@ -6,20 +6,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	bloomfilter "github.com/zomgra/tracker/internal/bloom"
+	"github.com/zomgra/tracker/internal/app"
 	"github.com/zomgra/tracker/internal/shipment"
 )
 
 func main() {
 	r := mux.NewRouter()
-	shipmentRepository := shipment.NewRepository()
-	bloomRepository := bloomfilter.NewRepository()
+	shipmentRepository := app.NewShipmentRepository()
+	bloomRepository := app.NewBloomFilterRepository()
 	handler := shipment.NewHandler(bloomRepository, shipmentRepository)
 
 	shipment.AddRoutes(r, handler)
 
 	godotenv.Load("app.env")
-	// connection, err := db.NewConnection()
 
 	go func() {
 		bloomRepository.InjectFromDB()
@@ -30,5 +29,4 @@ func main() {
 	}()
 
 	select {}
-
 }

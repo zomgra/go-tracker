@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/zomgra/tracker/internal/domain"
 	"github.com/zomgra/tracker/internal/interfaces"
-	"github.com/zomgra/tracker/internal/models"
 )
 
 type ShipmentHandler struct {
@@ -48,21 +48,16 @@ func (s *ShipmentHandler) CreateShipments(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		http.Error(w, "Bad quantity params", http.StatusBadRequest)
 	}
-	shipments := make([]models.Shipment, 0)
+	shipments := make([]domain.Shipment, 0)
 	for i := 0; i < quantity; i++ {
-		ship := models.Shipment{}
+		ship := domain.Shipment{}
 		ship.GenerateShipment()
 		repo := getRepository(s)
 		repo.AddShipment(ship)
 		shipments = append(shipments, ship)
 		log.Println(i)
 	}
-	// if len(shipments) > 0 {
 	returnJson(w, shipments, 201)
-	// } else {
-	// 	returnJson(w, shipments, 404)
-	// }
-
 }
 
 func returnJson(w http.ResponseWriter, v interface{}, status int) {

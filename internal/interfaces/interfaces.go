@@ -1,10 +1,10 @@
 package interfaces
 
-import "github.com/zomgra/tracker/internal/models"
+import "github.com/zomgra/tracker/internal/domain"
 
 type Repository interface {
 	OnLoad() bool
-	AddShipment(models.Shipment)
+	AddShipment(domain.Shipment)
 	CheckShipment(barcode string) bool
 	InjectFromDB()
 }

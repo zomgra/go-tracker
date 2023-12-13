@@ -1,16 +1,41 @@
-package db
+package postgres
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
+	"os"
 	"time"
 
 	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/jmoiron/sqlx"
 )
+
+type PostgresDBHandler struct {
+	db *sqlx.DB
+}
+
+func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching error hier
+	connString := os.Getenv("CONN_STRING")
+	log.Print(connString)
+
+	if connString == "" {
+		return nil, errors.New("connection string is empty. Please check enviroment")
+	}
+
+	db, err := sqlx.Connect("postgres", connString)
+	if err != nil {
+		return nil, err
+	}
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	return &PostgresDBHandler{db}, nil
+}
 
 func InsertShipment(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
-	connection, err := NewPool()
+	connection, err := NewPostgresDBHandler()
 	_, err = connection.db.Exec(query, barcode)
 	if err != nil {
 		log.Panic("Error with insert shipment", err)
@@ -20,7 +45,7 @@ func InsertShipment(barcode string) error {
 
 func ExistShipment(barcode string) (bool, error) {
 	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
-	connection, err := NewPool()
+	connection, err := NewPostgresDBHandler()
 	row := connection.db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
@@ -32,7 +57,7 @@ func ExistShipment(barcode string) (bool, error) {
 }
 
 func InjectDataTo(filter *bloom.BloomFilter) error {
-	connection, err := NewPool()
+	connection, err := NewPostgresDBHandler()
 	if err != nil {
 		return err
 	}

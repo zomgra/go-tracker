@@ -1,12 +1,12 @@
-package bloomfilter
+package app
 
 import (
 	"encoding/json"
 	"log"
 
 	"github.com/bits-and-blooms/bloom/v3"
-	"github.com/zomgra/tracker/internal/models"
-	"github.com/zomgra/tracker/pkg/db"
+	"github.com/zomgra/tracker/internal/domain"
+	"github.com/zomgra/tracker/pkg/db/postgres"
 )
 
 type BloomFilterService struct {
@@ -17,19 +17,19 @@ type BloomFilterRepository struct {
 	filter      *bloom.BloomFilter
 }
 
-func NewRepository() *BloomFilterRepository {
+func NewBloomFilterRepository() *BloomFilterRepository {
 	return &BloomFilterRepository{true, bloom.NewWithEstimates(100000, 0.01)}
 }
 func (b *BloomFilterRepository) OnLoad() bool {
 	return b.OnInjecting
 }
 
-func (b *BloomFilterRepository) AddShipment(s models.Shipment) {
+func (b *BloomFilterRepository) AddShipment(s domain.Shipment) {
 	newBarcodeBytes, _ := json.Marshal(s.Barcode)
 	b.filter.Add([]byte(newBarcodeBytes))
 	log.Println("Use bloomfilter")
 
-	db.InsertShipment(s.Barcode)
+	postgres.InsertShipment(s.Barcode)
 }
 
 func (b *BloomFilterRepository) CheckShipment(barcode string) bool {
@@ -40,10 +40,9 @@ func (b *BloomFilterRepository) CheckShipment(barcode string) bool {
 		return false
 	}
 
-	// TODO : Change it so that it is not necessary to use ShipmentRepository
 	log.Println("Use bloomfilter")
 
-	ok, err := db.ExistShipment(barcode)
+	ok, err := postgres.ExistShipment(barcode)
 	if err != nil {
 		return false
 	}
@@ -54,7 +53,7 @@ func (b *BloomFilterRepository) CheckShipment(barcode string) bool {
 }
 func (r *BloomFilterRepository) InjectFromDB() {
 	r.OnInjecting = true
-	err := db.InjectDataTo(r.filter)
+	err := postgres.InjectDataTo(r.filter)
 	if err != nil {
 		log.Fatal(err)
 	}

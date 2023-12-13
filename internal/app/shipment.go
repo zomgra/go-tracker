@@ -1,10 +1,10 @@
-package shipment
+package app
 
 import (
 	"log"
 
-	"github.com/zomgra/tracker/internal/models"
-	"github.com/zomgra/tracker/pkg/db"
+	"github.com/zomgra/tracker/internal/domain"
+	"github.com/zomgra/tracker/pkg/db/postgres"
 )
 
 type ShipmentService struct {
@@ -13,7 +13,7 @@ type ShipmentService struct {
 type ShipmentRepository struct {
 }
 
-func NewRepository() *ShipmentRepository {
+func NewShipmentRepository() *ShipmentRepository {
 	return &ShipmentRepository{}
 }
 
@@ -21,8 +21,8 @@ func (r *ShipmentRepository) OnLoad() bool {
 	return false
 }
 
-func (r *ShipmentRepository) AddShipment(s models.Shipment) {
-	err := db.InsertShipment(s.Barcode)
+func (r *ShipmentRepository) AddShipment(s domain.Shipment) {
+	err := postgres.InsertShipment(s.Barcode)
 	log.Println("Use shipment ")
 	if err != nil {
 		log.Panic("problem with adding", err)
@@ -30,7 +30,7 @@ func (r *ShipmentRepository) AddShipment(s models.Shipment) {
 }
 
 func (r *ShipmentRepository) CheckShipment(barcode string) bool {
-	ok, err := db.ExistShipment(barcode)
+	ok, err := postgres.ExistShipment(barcode)
 	if err != nil {
 		log.Panic("problem with checking: ", err)
 	}
