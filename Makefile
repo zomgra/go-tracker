@@ -8,3 +8,6 @@ db:
 	docker run -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=postgresDB -d --name postgres-bitbucket postgres
 migration:
 	migrate -source file://./pkg/db/migrations -database postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable up
+
+test:
+	go test -v -cover ./... 

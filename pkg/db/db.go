@@ -1,42 +1,43 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
+	"errors"
 	"log"
+	"os"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5"
 )
 
 type DB struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-var Instance *DB
-
-type DbOptions struct {
-	User, Password, Addr, Database string
-}
-
-func CreateConnection(o *DbOptions) {
-	connString := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", o.User, o.Password, o.Addr, o.Database)
+func NewConnection() (*DB, error) {
+	connString := os.Getenv("CONN_STRING")
 	log.Print(connString)
-	db, err := sql.Open("postgres", connString)
+
+	if connString == "" {
+		return nil, errors.New("connection string is empty. Please check enviroment")
+	}
+
+	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
-	createMigrations(connString)
-	Instance = &DB{db}
+	return &DB{db}, nil
 }
 
+// Maybe in future use for migrate
 func createMigrations(connString string) {
 	m, err := migrate.New("file://pkg/db/migrations", connString)
 	if err != nil && err != migrate.ErrNoChange {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/zomgra/bitbucket/internal/models"
-	shipmentservice "github.com/zomgra/bitbucket/internal/services/shipment"
 	"github.com/zomgra/bitbucket/pkg/db"
 )
 
@@ -31,7 +30,7 @@ func (b BloomFilterRepository) AddShipment(s models.Shipment) {
 
 	// TODO : Change it so that it is not necessary to use ShipmentRepository
 
-	shipmentservice.ShipmentRepository{}.AddShipment(s)
+	db.InsertShipment(s.Barcode)
 }
 func (b BloomFilterRepository) CheckShipment(barcode string) bool {
 	shipmentBarcodeBytes, _ := json.Marshal(barcode)
@@ -44,11 +43,13 @@ func (b BloomFilterRepository) CheckShipment(barcode string) bool {
 	// TODO : Change it so that it is not necessary to use ShipmentRepository
 	log.Println("Use bloomfilter")
 
-	ok := shipmentservice.ShipmentRepository{}.CheckShipment(barcode)
+	ok, err := db.ExistShipment(barcode)
+	if err != nil {
+		return false
+	}
 	if ok {
 		return true
 	}
-	log.Panic(errors.New("not found shipment"))
 	return false
 }
 func (r BloomFilterRepository) InjectFromDB() {

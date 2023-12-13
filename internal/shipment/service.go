@@ -1,4 +1,4 @@
-package shipmentservice
+package shipment
 
 import (
 	"log"
@@ -25,7 +25,7 @@ func (r ShipmentRepository) AddShipment(s models.Shipment) {
 }
 
 func (r ShipmentRepository) CheckShipment(barcode string) bool {
-	ok, err := db.SelectShipment(barcode)
+	ok, err := db.ExistShipment(barcode)
 	if err != nil {
 		log.Panic("problem with checking: ", err)
 	}

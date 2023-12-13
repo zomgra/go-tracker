@@ -11,19 +11,20 @@ import (
 	"github.com/zomgra/bitbucket/internal/interfaces"
 	"github.com/zomgra/bitbucket/internal/models"
 
-	bloomfilter "github.com/zomgra/bitbucket/internal/services/bloom"
-	shipmentservice "github.com/zomgra/bitbucket/internal/services/shipment"
+	bloomfilter "github.com/zomgra/bitbucket/internal/bloom"
 )
 
 func getRepository() interfaces.Repository {
 
 	if bloomfilter.Repository.OnLoad {
-		return shipmentservice.Repository
+		return Repository
 	}
 	return bloomfilter.Repository
 }
 
 func CheckShipments(w http.ResponseWriter, r *http.Request) {
+	log.Println("CreateShipments: Before handling the request")
+
 	params := mux.Vars(r)
 	barcode := params["barcode"]
 	ok := getRepository().CheckShipment(barcode)
@@ -44,7 +45,8 @@ func CreateShipments(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < quantity; i++ {
 		s := models.Shipment{}
 		s.GenerateShipment()
-		getRepository().AddShipment(s)
+		repo := getRepository()
+		repo.AddShipment(s)
 		shipments = append(shipments, s)
 		log.Println(i)
 	}
