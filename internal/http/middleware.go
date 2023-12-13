@@ -1,4 +1,4 @@
-package shipment
+package http
 
 import (
 	"fmt"
@@ -6,22 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/mux"
 )
-
-func AddRoutes(r *mux.Router, h *ShipmentHandler) *mux.Router {
-
-	r.Use(errorHandlerMiddleware, logMiddleware)
-	//Add Shipment route
-	r.Handle("/api/shipment", checkQuantity(h.CreateShipments)).Methods("POST")
-	r.HandleFunc("/api/shipment/{barcode}", h.CheckShipments).Methods("GET")
-
-	// Prometheus
-	//r.Handle("/metrics", promhttp.Handler())
-
-	return r
-}
 
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

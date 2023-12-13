@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/bits-and-blooms/bloom"
 	"github.com/zomgra/tracker/internal/domain"
 	"github.com/zomgra/tracker/pkg/db/postgres"
 )

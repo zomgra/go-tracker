@@ -7,19 +7,25 @@ import (
 	"os"
 	"time"
 
-	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/bits-and-blooms/bloom"
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/jackc/pgx/v5"
 )
 
 type PostgresDBHandler struct {
 	db *sqlx.DB
 }
 
-func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching error hier
+func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching errors hier
 	connString := os.Getenv("CONN_STRING")
 	log.Print(connString)
 
 	if connString == "" {
+		log.Println("CONN STRING EMPTY")
 		return nil, errors.New("connection string is empty. Please check enviroment")
 	}
 
@@ -36,6 +42,9 @@ func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching er
 func InsertShipment(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
 	connection, err := NewPostgresDBHandler()
+
+	defer connection.db.Close()
+
 	_, err = connection.db.Exec(query, barcode)
 	if err != nil {
 		log.Panic("Error with insert shipment", err)
@@ -46,6 +55,7 @@ func InsertShipment(barcode string) error {
 func ExistShipment(barcode string) (bool, error) {
 	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
 	connection, err := NewPostgresDBHandler()
+	defer connection.db.Close()
 	row := connection.db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
@@ -53,6 +63,7 @@ func ExistShipment(barcode string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 

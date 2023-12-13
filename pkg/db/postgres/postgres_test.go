@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/bits-and-blooms/bloom"
 	"github.com/stretchr/testify/require"
 	"github.com/zomgra/tracker/utils"
 )

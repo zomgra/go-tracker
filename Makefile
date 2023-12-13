@@ -13,9 +13,9 @@ test_db:
 
 
 test:
-	go test -v -cover ./... 
+	go test -v -cover  ./... 
 
 migrate-up:
 	docker run --rm -v $(CURDIR)/pkg/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable up
-migrate_up-test:
+migrate_up_test:
 	docker run --rm -v $(CURDIR)/pkg/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresTestDB?sslmode=disable up

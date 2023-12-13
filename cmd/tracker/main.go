@@ -2,21 +2,21 @@ package main
 
 import (
 	"log"
-	"net/http"
+	serverhttp "net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/zomgra/tracker/internal/app"
-	"github.com/zomgra/tracker/internal/shipment"
+	"github.com/zomgra/tracker/internal/http"
 )
 
 func main() {
 	r := mux.NewRouter()
 	shipmentRepository := app.NewShipmentRepository()
 	bloomRepository := app.NewBloomFilterRepository()
-	handler := shipment.NewHandler(bloomRepository, shipmentRepository)
+	handler := http.NewHandler(bloomRepository, shipmentRepository)
 
-	shipment.AddRoutes(r, handler)
+	http.AddShipmentRoutes(r, handler)
 
 	godotenv.Load("app.env")
 
@@ -25,7 +25,7 @@ func main() {
 	}()
 
 	go func() {
-		log.Fatal(http.ListenAndServe("localhost:8000", r))
+		log.Fatal(serverhttp.ListenAndServe("localhost:8000", r))
 	}()
 
 	select {}
