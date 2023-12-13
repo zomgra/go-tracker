@@ -11,10 +11,11 @@ type ShipmentService struct {
 	repository ShipmentRepository
 }
 type ShipmentRepository struct {
-	//client *sql.DB
 }
 
-var Repository ShipmentRepository
+func NewRepository() *ShipmentRepository {
+	return &ShipmentRepository{}
+}
 
 func (r ShipmentRepository) AddShipment(s models.Shipment) {
 	err := db.InsertShipment(s.Barcode)

@@ -10,12 +10,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func AddRoutes(r *mux.Router) *mux.Router {
+func AddRoutes(r *mux.Router, h *ShipmentHandler) *mux.Router {
 
 	r.Use(errorHandlerMiddleware, logMiddleware)
 	//Add Shipment route
-	r.Handle("/api/shipment", checkQuantity(CreateShipments)).Methods("POST")
-	r.HandleFunc("/api/shipment/{barcode}", CheckShipments).Methods("GET")
+	r.Handle("/api/shipment", checkQuantity(h.CreateShipments)).Methods("POST")
+	r.HandleFunc("/api/shipment/{barcode}", h.CheckShipments).Methods("GET")
 
 	// Prometheus
 	//r.Handle("/metrics", promhttp.Handler())

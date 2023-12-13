@@ -10,24 +10,27 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/zomgra/tracker/internal/interfaces"
 	"github.com/zomgra/tracker/internal/models"
-
-	bloomfilter "github.com/zomgra/tracker/internal/bloom"
 )
 
-func getRepository() interfaces.Repository {
-
-	if bloomfilter.Repository.OnLoad {
-		return Repository
-	}
-	return bloomfilter.Repository
+type ShipmentHandler struct {
+	bloomfilter     interfaces.Repository
+	shipmentservice interfaces.Repository
 }
 
-func CheckShipments(w http.ResponseWriter, r *http.Request) {
+func NewHandler(bloomfilter interfaces.Repository, shipmentservice interfaces.Repository) *ShipmentHandler {
+	return &ShipmentHandler{bloomfilter: bloomfilter, shipmentservice: shipmentservice}
+}
+
+func getRepository(handler *ShipmentHandler) interfaces.Repository {
+	return handler.bloomfilter
+}
+
+func (h *ShipmentHandler) CheckShipments(w http.ResponseWriter, r *http.Request) {
 	log.Println("CreateShipments: Before handling the request")
 
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	ok := getRepository().CheckShipment(barcode)
+	ok := getRepository(h).CheckShipment(barcode)
 
 	if ok {
 		returnJson(w, ok, 200)
@@ -36,18 +39,18 @@ func CheckShipments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateShipments(w http.ResponseWriter, r *http.Request) {
+func (s *ShipmentHandler) CreateShipments(w http.ResponseWriter, r *http.Request) {
 	quantity, err := strconv.Atoi(r.URL.Query().Get("quantity"))
 	if err != nil {
 		http.Error(w, "Bad quantity params", http.StatusBadRequest)
 	}
 	shipments := make([]models.Shipment, 0)
 	for i := 0; i < quantity; i++ {
-		s := models.Shipment{}
-		s.GenerateShipment()
-		repo := getRepository()
-		repo.AddShipment(s)
-		shipments = append(shipments, s)
+		ship := models.Shipment{}
+		ship.GenerateShipment()
+		repo := getRepository(s)
+		repo.AddShipment(ship)
+		shipments = append(shipments, ship)
 		log.Println(i)
 	}
 	returnJson(w, shipments, 201)
@@ -56,13 +59,15 @@ func CreateShipments(w http.ResponseWriter, r *http.Request) {
 
 func returnJson(w http.ResponseWriter, v interface{}, status int) {
 	if v == nil {
-		// No Content
+		w.WriteHeader(404)
+		return
 	}
 	t := reflect.ValueOf(v)
 
 	if t.Kind() == reflect.Slice {
 		if t.Len() == 0 {
-			//TODO: Return: No Content
+			w.WriteHeader(404)
+			return
 		}
 	}
 	//TODO: more check

@@ -17,25 +17,26 @@ type BloomFilterService struct {
 }
 type BloomFilterRepository struct {
 	OnLoad bool
+	filter *bloom.BloomFilter
 }
 
-var Repository BloomFilterRepository = BloomFilterRepository{OnLoad: true}
+func NewRepository() *BloomFilterRepository {
+	return &BloomFilterRepository{true, bloom.NewWithEstimates(100000, 0.01)}
+}
 
-var filter *bloom.BloomFilter = bloom.NewWithEstimates(1000000, 0.01)
-
-func (b BloomFilterRepository) AddShipment(s models.Shipment) {
+func (b *BloomFilterRepository) AddShipment(s models.Shipment) {
 	newBarcodeBytes, _ := json.Marshal(s.Barcode)
-	filter.Add([]byte(newBarcodeBytes))
+	b.filter.Add([]byte(newBarcodeBytes))
 	log.Println("Use bloomfilter")
 
 	// TODO : Change it so that it is not necessary to use ShipmentRepository
 
 	db.InsertShipment(s.Barcode)
 }
-func (b BloomFilterRepository) CheckShipment(barcode string) bool {
+func (b *BloomFilterRepository) CheckShipment(barcode string) bool {
 	shipmentBarcodeBytes, _ := json.Marshal(barcode)
 
-	existInBloom := filter.Test(shipmentBarcodeBytes)
+	existInBloom := b.filter.Test(shipmentBarcodeBytes)
 	if !existInBloom {
 		log.Panic(errors.New("not exist in bloom filter"))
 	}
@@ -52,8 +53,8 @@ func (b BloomFilterRepository) CheckShipment(barcode string) bool {
 	}
 	return false
 }
-func (r BloomFilterRepository) InjectFromDB() {
-	Repository.OnLoad = true
-	db.InjectDataTo(filter)
-	Repository.OnLoad = false
+func (r *BloomFilterRepository) InjectFromDB() {
+	r.OnLoad = true
+	db.InjectDataTo(r.filter)
+	r.OnLoad = false
 }

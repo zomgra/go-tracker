@@ -14,11 +14,11 @@ import (
 	_ "github.com/jackc/pgx/v5"
 )
 
-type DB struct {
+type DBHandler struct {
 	db *sqlx.DB
 }
 
-func NewConnection() (*DB, error) {
+func NewPool() (*DBHandler, error) { // Realize catching error hier
 	connString := os.Getenv("CONN_STRING")
 	log.Print(connString)
 
@@ -30,14 +30,13 @@ func NewConnection() (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-	return &DB{db}, nil
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	return &DBHandler{db}, nil
 }
 
-// Maybe in future use for migrate
+// Maybe in future use for stationary migrate
 func createMigrations(connString string) {
 	m, err := migrate.New("file://pkg/db/migrations", connString)
 	if err != nil && err != migrate.ErrNoChange {

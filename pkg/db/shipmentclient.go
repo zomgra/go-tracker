@@ -10,7 +10,7 @@ import (
 
 func InsertShipment(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
-	connection, err := NewConnection()
+	connection, err := NewPool()
 	_, err = connection.db.Exec(query, barcode)
 	if err != nil {
 		log.Panic("Error with insert shipment", err)
@@ -20,7 +20,7 @@ func InsertShipment(barcode string) error {
 
 func ExistShipment(barcode string) (bool, error) {
 	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
-	connection, err := NewConnection()
+	connection, err := NewPool()
 	row := connection.db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
@@ -32,7 +32,7 @@ func ExistShipment(barcode string) (bool, error) {
 }
 
 func InjectDataTo(filter *bloom.BloomFilter) error {
-	connection, err := NewConnection()
+	connection, err := NewPool()
 	if err != nil {
 		return err
 	}

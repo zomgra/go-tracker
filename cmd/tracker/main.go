@@ -12,13 +12,17 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	shipment.AddRoutes(r)
+	shipmentRepository := shipment.NewRepository()
+	bloomRepository := bloomfilter.NewRepository()
+	handler := shipment.NewHandler(bloomRepository, shipmentRepository)
+
+	shipment.AddRoutes(r, handler)
 
 	godotenv.Load("app.env")
 	// connection, err := db.NewConnection()
 
 	go func() {
-		bloomfilter.Repository.InjectFromDB()
+		bloomRepository.InjectFromDB()
 	}()
 
 	go func() {
