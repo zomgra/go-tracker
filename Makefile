@@ -11,7 +11,6 @@ db:
 test_db:
 	docker exec -it postgres-tracker createdb -U postgres postgresTestDB
 
-
 test:
 	go test -v -cover  ./... 
 

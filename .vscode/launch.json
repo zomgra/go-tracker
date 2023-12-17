@@ -9,9 +9,9 @@
         "type": "go",
         "request": "launch",
         "mode": "debug",
-        "program": "${workspaceFolder}/cmd/bitbucket/",
+        "program": "${workspaceFolder}/cmd/tracker/",
         "env": {
-          "CONN_STRING=postgresql":"//postgres:password@localhost:5432/postgresDB?sslmode=disable"
+          "CONN_STRING": "postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable"
         }
       }
 

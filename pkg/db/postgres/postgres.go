@@ -22,7 +22,6 @@ type PostgresDBHandler struct {
 
 func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching errors hier
 	connString := os.Getenv("CONN_STRING")
-	log.Print(connString)
 
 	if connString == "" {
 		log.Println("CONN STRING EMPTY")

@@ -16,7 +16,7 @@ func logMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func checkQuantity(f http.HandlerFunc) http.Handler {
+func checkQuantity(nextFun http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		quantity, err := strconv.Atoi(r.URL.Query().Get("quantity"))
 		if err != nil {
@@ -28,8 +28,8 @@ func checkQuantity(f http.HandlerFunc) http.Handler {
 			return
 		}
 
-		if f != nil {
-			f(w, r)
+		if nextFun != nil {
+			nextFun(w, r)
 		} else {
 			log.Println("checkQuantity middleware: Handler function is nil")
 		}

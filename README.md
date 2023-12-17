@@ -1,5 +1,6 @@
 # go-tracker Mykyta Serdiuk
 
+
 For start program use:
 
 1. `make db`
@@ -18,7 +19,19 @@ For testing use:
 3. `make migrate_up_test`
 
 4. `make test`
-Listener uri:
+
+
+Listen app uri:
 
 `localhost:8000/api/shipment/{barcode}` -- GET
 `localhost:8000/api/shipment?quantity=X` -- POST
+
+
+Dependencies for use:
+
+* Requared
+_Docker_
+_go_
+
+* Optional
+_migrate_ 

@@ -7,7 +7,7 @@ import (
 func AddShipmentRoutes(r *mux.Router, h *ShipmentHandler) *mux.Router {
 
 	r.Use(errorHandlerMiddleware, logMiddleware)
-	//Add Shipment route
+
 	r.Handle("/api/shipment", checkQuantity(h.CreateShipments)).Methods("POST")
 	r.HandleFunc("/api/shipment/{barcode}", h.CheckShipments).Methods("GET")
 
