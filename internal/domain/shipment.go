@@ -1,19 +1,12 @@
 package domain
 
-import "github.com/zomgra/tracker/utils"
+import "github.com/zomgra/tracker/pkg/barcode"
 
 type Shipment struct {
 	Barcode string
 }
 
-type Repository interface {
-	OnLoad() bool
-	AddShipment(Shipment)
-	CheckShipment(barcode string) bool
-	InjectFromDB()
-}
-
 func (shipment *Shipment) GenerateShipment() {
-	code := utils.GenerateBarCode(2, 2)
+	code := barcode.GenerateBarCode(2, 2)
 	shipment.Barcode = code
 }

@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"encoding/json"
@@ -8,29 +8,21 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/zomgra/tracker/internal/domain"
+	"github.com/zomgra/tracker/internal/interfaces"
 )
 
 type ShipmentHandler struct {
-	bloomfilter     domain.Repository
-	shipmentservice domain.Repository
+	shipmentRepository interfaces.Repository[domain.Shipment]
 }
 
-func NewHandler(bloomfilter domain.Repository, shipmentservice domain.Repository) *ShipmentHandler {
-	return &ShipmentHandler{bloomfilter: bloomfilter, shipmentservice: shipmentservice}
-}
-
-func getRepository(handler *ShipmentHandler) domain.Repository {
-	if handler.bloomfilter.OnLoad() {
-		return handler.shipmentservice
-	} else {
-		return handler.bloomfilter
-	}
+func NewHandler(shipmentRepository interfaces.Repository[domain.Shipment]) *ShipmentHandler {
+	return &ShipmentHandler{shipmentRepository: shipmentRepository}
 }
 
 func (h *ShipmentHandler) CheckShipments(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	ok := getRepository(h).CheckShipment(barcode)
+	ok := h.shipmentRepository.Check(barcode)
 
 	if ok {
 		returnJson(w, ok, 200)
@@ -48,8 +40,9 @@ func (s *ShipmentHandler) CreateShipments(w http.ResponseWriter, r *http.Request
 	for i := 0; i < quantity; i++ {
 		ship := domain.Shipment{}
 		ship.GenerateShipment()
-		repo := getRepository(s)
-		repo.AddShipment(ship)
+
+		s.shipmentRepository.Add(ship)
+
 		shipments = append(shipments, ship)
 	}
 	returnJson(w, shipments, 201)

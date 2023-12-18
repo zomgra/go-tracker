@@ -1,20 +1,23 @@
-package utils
+package barcode
 
 import (
 	"math/rand"
 	"time"
 )
 
-var AvailableChars = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var alphabetRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-const MaxLengthBarCode = 20
+const (
+	MaxLengthBarCode = 20
+	//AvailableChars   = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+)
 
 func GenerateBarCode(charInStart, charInEnd int) string {
 	rand.Seed(time.Now().UnixNano())
 
 	var result []rune
 	for i := 0; i < charInStart; i++ {
-		result = append(result, AvailableChars[rand.Intn(len(AvailableChars))])
+		result = append(result, alphabetRunes[rand.Intn(len(alphabetRunes))])
 	}
 
 	for i := 0; i < MaxLengthBarCode-(charInStart+charInEnd); i++ {
@@ -22,7 +25,7 @@ func GenerateBarCode(charInStart, charInEnd int) string {
 	}
 
 	for i := 0; i < charInEnd; i++ {
-		result = append(result, AvailableChars[rand.Intn(len(AvailableChars))])
+		result = append(result, alphabetRunes[rand.Intn(len(alphabetRunes))])
 	}
 
 	return string(result)

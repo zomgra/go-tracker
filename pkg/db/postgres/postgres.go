@@ -2,13 +2,12 @@ package postgres
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
-	"os"
 	"time"
 
-	"github.com/bits-and-blooms/bloom"
 	"github.com/jmoiron/sqlx"
+	"github.com/zomgra/tracker/configs"
+	"github.com/zomgra/tracker/pkg/bloomfilter"
 
 	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -20,15 +19,22 @@ type PostgresDBHandler struct {
 	db *sqlx.DB
 }
 
-func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching errors hier
-	connString := os.Getenv("CONN_STRING")
+type PostgresDBClient struct {
+	handler PostgresDBHandler
+}
 
-	if connString == "" {
-		log.Println("CONN STRING EMPTY")
-		return nil, errors.New("connection string is empty. Please check enviroment")
+func NewDBClient(config configs.DBConfig) (*PostgresDBClient, error) {
+	handler, err := newPostgresDBHandler(config)
+	if err != nil {
+		return nil, err
 	}
+	client := &PostgresDBClient{handler: *handler}
+	return client, nil
+}
 
-	db, err := sqlx.Connect("postgres", connString)
+func newPostgresDBHandler(config configs.DBConfig) (*PostgresDBHandler, error) { // Realize catching errors hier
+
+	db, err := sqlx.Connect("postgres", config.ConnectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -38,27 +44,23 @@ func NewPostgresDBHandler() (*PostgresDBHandler, error) { // Realize catching er
 	return &PostgresDBHandler{db}, nil
 }
 
-func InsertShipment(barcode string) error {
+func (c *PostgresDBClient) Insert(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
-	connection, err := NewPostgresDBHandler()
 
-	defer connection.db.Close()
-
-	_, err = connection.db.Exec(query, barcode)
+	_, err := c.handler.db.Exec(query, barcode)
 	if err != nil {
 		log.Panic("Error with insert shipment", err)
 	}
 	return nil
 }
 
-func ExistShipment(barcode string) (bool, error) {
+func (c *PostgresDBClient) Exist(barcode string) (bool, error) {
 	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
-	connection, err := NewPostgresDBHandler()
-	defer connection.db.Close()
-	row := connection.db.QueryRow(query, barcode)
+
+	row := c.handler.db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
-	err = row.Scan(&foundingShipmentBarcode)
+	err := row.Scan(&foundingShipmentBarcode)
 	if err != nil {
 		return false, err
 	}
@@ -66,12 +68,9 @@ func ExistShipment(barcode string) (bool, error) {
 	return true, nil
 }
 
-func InjectDataTo(filter *bloom.BloomFilter) error {
-	connection, err := NewPostgresDBHandler()
-	if err != nil {
-		return err
-	}
-	tx, err := connection.db.Begin()
+func (c *PostgresDBClient) InjectDataTo(filter *bloomfilter.BloomFilterHelper) error {
+
+	tx, err := c.handler.db.Begin()
 	query := "DECLARE cursor_shipment CURSOR FOR SELECT * FROM shipments;"
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -82,7 +81,6 @@ func InjectDataTo(filter *bloom.BloomFilter) error {
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 	for rows.Next() {
 		var barcode string
 		rows.Scan(&barcode)
@@ -91,4 +89,8 @@ func InjectDataTo(filter *bloom.BloomFilter) error {
 	}
 	time.Sleep(5 * time.Second)
 	return nil
+}
+
+func (c *PostgresDBClient) Close() error {
+	return c.handler.db.Close()
 }
