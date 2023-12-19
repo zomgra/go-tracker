@@ -26,19 +26,25 @@ func (r *ShipmentRepository) LoadEnding() {
 	r.bloomfilterIsReady = true
 }
 
-func (r *ShipmentRepository) Add(s domain.Shipment) {
+func (r *ShipmentRepository) Add(s domain.Shipment) error {
 
-	barcodeByte, _ := json.Marshal(s.Barcode)
-	r.bloomHelper.Add(barcodeByte)
-
-	err := r.dbClient.Insert(s.Barcode)
+	barcodeByte, err := json.Marshal(s.Barcode)
 
 	if err != nil {
-		log.Panic("problem with adding", err)
+		return err
 	}
+
+	r.bloomHelper.Add(barcodeByte)
+
+	err = r.dbClient.Insert(s.Barcode)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *ShipmentRepository) Check(id string) bool {
+func (r *ShipmentRepository) Check(id string) (bool, error) {
 
 	barcodeByte, _ := json.Marshal(id)
 	if r.bloomfilterIsReady {
@@ -46,18 +52,18 @@ func (r *ShipmentRepository) Check(id string) bool {
 
 		ok := r.bloomHelper.Check(barcodeByte)
 		if !ok {
-			return false
+			return false, nil
 		}
 	}
 
 	ok, err := r.dbClient.Exist(id)
 
 	if err != nil {
-		log.Panic("problem with checking: ", err)
+		return false, nil
 	}
 	log.Println("Use shipment ")
 
-	return ok
+	return ok, nil
 }
 func (r *ShipmentRepository) InjectFromDB(ec chan error) {
 	r.bloomfilterIsReady = false

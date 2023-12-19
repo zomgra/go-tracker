@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -22,12 +23,12 @@ func NewHandler(shipmentRepository interfaces.Repository[domain.Shipment]) *Ship
 func (h *ShipmentHandler) CheckShipments(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	ok := h.shipmentRepository.Check(barcode)
+	ok, err := h.shipmentRepository.Check(barcode)
 
 	if ok {
 		returnJson(w, ok, 200)
 	} else {
-		returnJson(w, "not found shipment", 404)
+		returnJson(w, fmt.Sprintf("not found shipment: %v ", err), 404)
 	}
 }
 
@@ -41,8 +42,10 @@ func (s *ShipmentHandler) CreateShipments(w http.ResponseWriter, r *http.Request
 		ship := domain.Shipment{}
 		ship.GenerateShipment()
 
-		s.shipmentRepository.Add(ship)
-
+		err := s.shipmentRepository.Add(ship)
+		if err != nil {
+			returnJson(w, fmt.Sprintf("error with creating shipment: %v ", err), 500)
+		}
 		shipments = append(shipments, ship)
 	}
 	returnJson(w, shipments, 201)
