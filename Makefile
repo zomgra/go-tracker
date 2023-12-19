@@ -15,6 +15,6 @@ test:
 	go test -v -cover  ./... 
 
 migrate_up:
-	docker run --rm -v $(CURDIR)/pkg/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable up
+	docker run --rm -v $(CURDIR)/pkg/db/postgres/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable up
 migrate_up_test:
-	docker run --rm -v $(CURDIR)/pkg/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresTestDB?sslmode=disable up
+	docker run --rm -v $(CURDIR)/pkg/db/postgres/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database postgresql://postgres:password@localhost:5432/postgresTestDB?sslmode=disable up

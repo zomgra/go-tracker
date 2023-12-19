@@ -13,7 +13,7 @@ import (
 type ShipmentRepository struct {
 	bloomfilterIsReady bool
 	dbClient           db.Client
-	bloomHelper        *bloomfilter.BloomFilterHelper
+	bloomHelper        *bloomfilter.Helper
 }
 
 func NewShipmentRepository(dbClient db.Client) interfaces.Repository[domain.Shipment] {
@@ -56,7 +56,7 @@ func (r *ShipmentRepository) Check(id string) (bool, error) {
 		}
 	}
 
-	ok, err := r.dbClient.Exist(id)
+	ok, err := r.dbClient.Exists(id)
 
 	if err != nil {
 		return false, nil
@@ -67,7 +67,7 @@ func (r *ShipmentRepository) Check(id string) (bool, error) {
 }
 func (r *ShipmentRepository) InjectFromDB(ec chan error) {
 	r.bloomfilterIsReady = false
-	err := r.dbClient.InjectDataTo(r.bloomHelper)
+	err := r.bloomHelper.Inject(r.dbClient.InjectDataTo)
 	if err != nil {
 		ec <- err
 		return

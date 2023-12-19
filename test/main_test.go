@@ -1,13 +1,11 @@
 package test
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
-	"github.com/zomgra/tracker/configs"
 	"github.com/zomgra/tracker/pkg/db"
 	"github.com/zomgra/tracker/pkg/db/postgres"
 )
@@ -21,9 +19,9 @@ func TestMain(m *testing.M) {
 var client db.Client
 
 func createPostgresClient() db.Client {
-	dbConfig := configs.DBConfig{ConnectionString: os.Getenv("CONNECTION_STRING")}
+	dbConfig := postgres.Config{ConnectionString: os.Getenv("CONNECTION_STRING")}
 	log.Println(dbConfig)
-	client, _ := postgres.NewDBClient(dbConfig)
+	client, _ := postgres.NewClient(dbConfig)
 
 	return client
 }
@@ -40,9 +38,4 @@ func setup() {
 	}
 	log.Println("Creating client")
 	client = createPostgresClient()
-}
-
-// In future if have open resources
-func teardown() {
-	fmt.Println("Teardown: Cleaning up resources")
 }

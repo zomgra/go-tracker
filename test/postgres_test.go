@@ -15,7 +15,7 @@ func createShipmentTest(t *testing.T, barcode string) {
 }
 
 func getExistShipmentTest(t *testing.T, barcode string) {
-	exist, err := client.Exist(barcode)
+	exist, err := client.Exists(barcode)
 	require.NoError(t, err)
 	require.True(t, exist)
 }
@@ -40,7 +40,7 @@ func TestInjectingFromDb(t *testing.T) {
 		barcodes <- barcode
 	}
 
-	client.InjectDataTo(filter)
+	filter.Inject(client.InjectDataTo)
 
 	for i := 0; i < n; i++ {
 		shipmentBarcodeBytes, _ := json.Marshal(<-barcodes)

@@ -1,13 +1,9 @@
 package postgres
 
 import (
-	"encoding/json"
 	"log"
-	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/zomgra/tracker/configs"
-	"github.com/zomgra/tracker/pkg/bloomfilter"
 
 	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -15,24 +11,20 @@ import (
 	_ "github.com/jackc/pgx/v5"
 )
 
-type PostgresDBHandler struct {
+type Client struct {
 	db *sqlx.DB
 }
 
-type PostgresDBClient struct {
-	handler PostgresDBHandler
-}
-
-func NewDBClient(config configs.DBConfig) (*PostgresDBClient, error) {
-	handler, err := newPostgresDBHandler(config)
+func NewClient(config Config) (*Client, error) {
+	db, err := newDB(config)
 	if err != nil {
 		return nil, err
 	}
-	client := &PostgresDBClient{handler: *handler}
+	client := &Client{db: db}
 	return client, nil
 }
 
-func newPostgresDBHandler(config configs.DBConfig) (*PostgresDBHandler, error) { // Realize catching errors hier
+func newDB(config Config) (*sqlx.DB, error) { // Realize catching errors hier
 
 	db, err := sqlx.Connect("postgres", config.ConnectionString)
 	if err != nil {
@@ -41,23 +33,23 @@ func newPostgresDBHandler(config configs.DBConfig) (*PostgresDBHandler, error) {
 
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
-	return &PostgresDBHandler{db}, nil
+	return db, nil
 }
 
-func (c *PostgresDBClient) Insert(barcode string) error {
+func (c *Client) Insert(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
 
-	_, err := c.handler.db.Exec(query, barcode)
+	_, err := c.db.Exec(query, barcode)
 	if err != nil {
 		log.Panic("Error with insert shipment", err)
 	}
 	return nil
 }
 
-func (c *PostgresDBClient) Exist(barcode string) (bool, error) {
+func (c *Client) Exists(barcode string) (bool, error) {
 	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
 
-	row := c.handler.db.QueryRow(query, barcode)
+	row := c.db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
 	err := row.Scan(&foundingShipmentBarcode)
@@ -68,29 +60,35 @@ func (c *PostgresDBClient) Exist(barcode string) (bool, error) {
 	return true, nil
 }
 
-func (c *PostgresDBClient) InjectDataTo(filter *bloomfilter.BloomFilterHelper) error {
+// add returning to channel
+func (c *Client) InjectDataTo(ch chan any) error {
 
-	tx, err := c.handler.db.Begin()
+	tx, err := c.db.Begin()
 	query := "DECLARE cursor_shipment CURSOR FOR SELECT * FROM shipments;"
 	_, err = tx.Exec(query)
 	if err != nil {
 		return err
 	}
-
+	//error
 	rows, err := tx.Query("FETCH ALL FROM cursor_shipment;")
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
 		var barcode string
-		rows.Scan(&barcode)
-		bytes, _ := json.Marshal(barcode)
-		filter.Add(bytes)
+
+		if err := rows.Scan(&barcode); err != nil {
+			//return err
+			//catch error
+			c.Close()
+		}
+		ch <- barcode
 	}
-	time.Sleep(5 * time.Second)
+
+	c.Close()
 	return nil
 }
 
-func (c *PostgresDBClient) Close() error {
-	return c.handler.db.Close()
+func (c *Client) Close() error {
+	return c.db.Close()
 }

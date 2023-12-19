@@ -1,11 +1,12 @@
-package http
+package web
 
 import (
 	"github.com/gorilla/mux"
 	"github.com/zomgra/tracker/internal/handlers"
 )
 
-func AddShipmentRoutes(r *mux.Router, h *handlers.ShipmentHandler) *mux.Router {
+func NewRoutes(h *handlers.ShipmentHandler) *mux.Router {
+	r := mux.NewRouter()
 
 	r.Use(errorHandlerMiddleware, logMiddleware)
 

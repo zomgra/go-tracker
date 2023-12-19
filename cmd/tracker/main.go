@@ -5,28 +5,26 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/zomgra/tracker/configs"
 	"github.com/zomgra/tracker/internal/handlers"
-	trackerHttp "github.com/zomgra/tracker/internal/http"
 	"github.com/zomgra/tracker/internal/service"
+	web "github.com/zomgra/tracker/internal/web"
 	"github.com/zomgra/tracker/pkg/db/postgres"
 )
 
 func main() {
 	dir, err := os.Getwd()
-	err = godotenv.Load(filepath.Dir(filepath.Dir(dir)) + "/configs/app.env")
+	err = godotenv.Load(dir + "/configs/app.env")
 	if err != nil {
 		log.Fatal(err)
 	}
-	dbconfig := configs.DBConfig{ConnectionString: os.Getenv("CONNECTION_STRING")}
+	dbconfig := postgres.Config{ConnectionString: os.Getenv("CONNECTION_STRING")}
 	appConfig := configs.ApplicationConfig{Port: os.Getenv("APPLICATION_PORT")}
 
-	dbClient, err := postgres.NewDBClient(dbconfig)
+	dbClient, err := postgres.NewClient(dbconfig)
 	defer dbClient.Close()
 	if err != nil {
 		// Quick exit app, idk what doing
@@ -34,11 +32,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	r := mux.NewRouter()
 	shipmentRepository := service.NewShipmentRepository(dbClient)
 	handler := handlers.NewHandler(shipmentRepository)
 
-	trackerHttp.AddShipmentRoutes(r, handler)
+	r := web.NewRoutes(handler)
 
 	injectionErrorChan := make(chan error)
 
@@ -68,6 +65,7 @@ func main() {
 		os.Exit(1)
 	}
 }
+
 func createSignal() chan os.Signal {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)

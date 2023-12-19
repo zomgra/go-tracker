@@ -1,24 +1,45 @@
 package bloomfilter
 
 import (
+	"encoding/json"
+
 	"github.com/bits-and-blooms/bloom"
 )
 
-func NewBloomFilterHelper() *BloomFilterHelper {
+func NewBloomFilterHelper() *Helper {
 	bloomfilter := bloom.NewWithEstimates(1000000, 0.01)
-	return &BloomFilterHelper{bloomfilter}
+	return &Helper{bloomfilter}
 }
 
-type BloomFilterHelper struct {
+type Helper struct {
 	filter *bloom.BloomFilter
 }
 
-func (b *BloomFilterHelper) Check(identifier []byte) bool {
+func (b *Helper) Check(identifier []byte) bool {
 
 	existInBloom := b.filter.Test(identifier)
 
 	return existInBloom
 }
-func (b *BloomFilterHelper) Add(identifier []byte) {
+func (b *Helper) Add(identifier []byte) {
 	b.filter.Add(identifier)
+}
+
+func (b *Helper) Inject(f func(chan any) error) error {
+	c := make(chan any)
+	errChan := make(chan error)
+	go func() {
+		err := f(c)
+		close(c)
+		errChan <- err
+	}()
+	for value := range c {
+		barcodeByte, err := json.Marshal(value)
+		if err != nil {
+			errChan <- err
+			close(errChan)
+		}
+		b.Add(barcodeByte)
+	}
+	return <-errChan
 }
