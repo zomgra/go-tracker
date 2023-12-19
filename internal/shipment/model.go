@@ -1,4 +1,4 @@
-package domain
+package shipment
 
 import "github.com/zomgra/tracker/pkg/barcode"
 

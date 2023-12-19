@@ -60,7 +60,6 @@ func (c *Client) Exists(barcode string) (bool, error) {
 	return true, nil
 }
 
-// add returning to channel
 func (c *Client) InjectDataTo(ch chan any) error {
 
 	tx, err := c.db.Begin()
@@ -69,7 +68,7 @@ func (c *Client) InjectDataTo(ch chan any) error {
 	if err != nil {
 		return err
 	}
-	//error
+
 	rows, err := tx.Query("FETCH ALL FROM cursor_shipment;")
 	if err != nil {
 		return err
@@ -86,6 +85,7 @@ func (c *Client) InjectDataTo(ch chan any) error {
 	}
 
 	c.Close()
+	close(ch)
 	return nil
 }
 

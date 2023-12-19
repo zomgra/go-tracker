@@ -1,10 +1,9 @@
-package service
+package shipment
 
 import (
 	"encoding/json"
 	"log"
 
-	"github.com/zomgra/tracker/internal/domain"
 	"github.com/zomgra/tracker/internal/interfaces"
 	"github.com/zomgra/tracker/pkg/bloomfilter"
 	"github.com/zomgra/tracker/pkg/db"
@@ -16,7 +15,7 @@ type ShipmentRepository struct {
 	bloomHelper        *bloomfilter.Helper
 }
 
-func NewShipmentRepository(dbClient db.Client) interfaces.Repository[domain.Shipment] {
+func NewRepository(dbClient db.Client) interfaces.Repository[Shipment] {
 	bloomHelper := bloomfilter.NewBloomFilterHelper()
 
 	return &ShipmentRepository{bloomHelper: bloomHelper, dbClient: dbClient, bloomfilterIsReady: false}
@@ -26,7 +25,7 @@ func (r *ShipmentRepository) LoadEnding() {
 	r.bloomfilterIsReady = true
 }
 
-func (r *ShipmentRepository) Add(s domain.Shipment) error {
+func (r *ShipmentRepository) Add(s Shipment) error {
 
 	barcodeByte, err := json.Marshal(s.Barcode)
 

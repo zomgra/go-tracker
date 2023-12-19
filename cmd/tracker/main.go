@@ -9,9 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zomgra/tracker/configs"
-	"github.com/zomgra/tracker/internal/handlers"
-	"github.com/zomgra/tracker/internal/service"
-	web "github.com/zomgra/tracker/internal/web"
+	"github.com/zomgra/tracker/internal/shipment"
+	"github.com/zomgra/tracker/internal/web"
 	"github.com/zomgra/tracker/pkg/db/postgres"
 )
 
@@ -32,8 +31,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	shipmentRepository := service.NewShipmentRepository(dbClient)
-	handler := handlers.NewHandler(shipmentRepository)
+	shipmentRepository := shipment.NewRepository(dbClient)
+	handler := shipment.NewHandler(shipmentRepository)
 
 	r := web.NewRoutes(handler)
 
