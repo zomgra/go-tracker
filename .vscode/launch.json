@@ -11,9 +11,9 @@
         "mode": "debug",
         "program": "${workspaceFolder}/cmd/tracker/",
         "env": {
-          "CONN_STRING": "postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable"
+          "APPLICATION_PORT" : "8000",
+          "CONNECTION_STRING": "postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable"
         }
       }
-
      ]
 }

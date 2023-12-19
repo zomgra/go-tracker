@@ -27,6 +27,10 @@ func (r *ShipmentRepository) LoadEnding() {
 }
 
 func (r *ShipmentRepository) Add(s domain.Shipment) {
+
+	barcodeByte, _ := json.Marshal(s.Barcode)
+	r.bloomHelper.Add(barcodeByte)
+
 	err := r.dbClient.Insert(s.Barcode)
 
 	if err != nil {
@@ -37,10 +41,13 @@ func (r *ShipmentRepository) Add(s domain.Shipment) {
 func (r *ShipmentRepository) Check(id string) bool {
 
 	barcodeByte, _ := json.Marshal(id)
-	ok := r.bloomHelper.Check(barcodeByte)
+	if r.bloomfilterIsReady {
+		log.Println("Using bloomfilter")
 
-	if !ok {
-		return false
+		ok := r.bloomHelper.Check(barcodeByte)
+		if !ok {
+			return false
+		}
 	}
 
 	ok, err := r.dbClient.Exist(id)

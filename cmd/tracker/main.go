@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/gorilla/mux"
@@ -18,7 +19,7 @@ import (
 
 func main() {
 	dir, err := os.Getwd()
-	err = godotenv.Load(dir + "/configs/app.env")
+	err = godotenv.Load(filepath.Dir(filepath.Dir(dir)) + "/configs/app.env")
 	if err != nil {
 		log.Fatal(err)
 	}
