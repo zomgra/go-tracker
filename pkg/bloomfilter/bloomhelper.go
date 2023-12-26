@@ -30,14 +30,12 @@ func (b *Helper) Inject(f func(chan any) error) error {
 	errChan := make(chan error)
 	go func() {
 		err := f(c)
-		close(c)
 		errChan <- err
 	}()
 	for value := range c {
 		barcodeByte, err := json.Marshal(value)
 		if err != nil {
-			errChan <- err
-			close(errChan)
+			return err
 		}
 		b.Add(barcodeByte)
 	}

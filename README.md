@@ -12,7 +12,7 @@ For start program use:
 
 For testing use:
 
-1. `make db` _if you already dont use it_
+1. `make db` _if you already dont start db_
 
 2. `make test_db` 
  

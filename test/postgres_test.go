@@ -39,7 +39,7 @@ func TestInjectingFromDb(t *testing.T) {
 		createShipmentTest(t, barcode)
 		barcodes <- barcode
 	}
-
+	close(barcodes)
 	filter.Inject(client.InjectDataTo)
 
 	for i := 0; i < n; i++ {

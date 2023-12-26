@@ -16,6 +16,7 @@ import (
 
 func main() {
 	dir, err := os.Getwd()
+	//dir = filepath.Dir(filepath.Dir(dir))
 	err = godotenv.Load(dir + "/configs/app.env")
 	if err != nil {
 		log.Fatal(err)

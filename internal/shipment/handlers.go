@@ -27,7 +27,7 @@ func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		returnJson(w, ok, 200)
 	} else {
-		returnJson(w, fmt.Sprintf("not found shipment: %v ", err), 404)
+		returnJson(w, &Error{"not found shipment: ", err}, 404)
 	}
 }
 
@@ -50,13 +50,18 @@ func (s *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	returnJson(w, shipments, 201)
 }
 
-func returnJson(w http.ResponseWriter, v interface{}, status int) {
+func returnJson(w http.ResponseWriter, v any, status int) {
 	if v == nil {
 		w.WriteHeader(404)
 		return
 	}
 	t := reflect.ValueOf(v)
-
+	err, ok := v.(*Error)
+	if ok {
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
 	if t.Kind() == reflect.Slice {
 		if t.Len() == 0 {
 			w.WriteHeader(404)

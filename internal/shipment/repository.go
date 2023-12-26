@@ -58,7 +58,7 @@ func (r *ShipmentRepository) Check(id string) (bool, error) {
 	ok, err := r.dbClient.Exists(id)
 
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 	log.Println("Use shipment ")
 
