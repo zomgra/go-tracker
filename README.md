@@ -5,7 +5,7 @@ For start program use:
 
 1. `make db`
 
-2. `make migrate-up`
+2. `make migrate_up`
 
 3. `make run`
 
