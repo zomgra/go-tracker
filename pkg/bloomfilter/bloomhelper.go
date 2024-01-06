@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 
 	"github.com/bits-and-blooms/bloom"
+	"github.com/zomgra/tracker/pkg/config"
 )
 
-func NewBloomFilterHelper() *Helper {
-	bloomfilter := bloom.NewWithEstimates(1000000, 0.01)
+func NewBloomFilterHelper(c *config.BloomFilterConfig) *Helper {
+	bloomfilter := bloom.NewWithEstimates(c.BloomLimit, 0.01)
 	return &Helper{bloomfilter}
 }
 
+// make interface
 type Helper struct {
 	filter *bloom.BloomFilter
 }

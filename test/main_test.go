@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/joho/godotenv"
+	"github.com/zomgra/tracker/internal/db/postgres"
+	"github.com/zomgra/tracker/pkg/config"
 	"github.com/zomgra/tracker/pkg/db"
-	"github.com/zomgra/tracker/pkg/db/postgres"
 )
 
 func TestMain(m *testing.M) {
@@ -19,16 +19,25 @@ func TestMain(m *testing.M) {
 var client db.Client
 
 func createPostgresClient() db.Client {
-	dbConfig := postgres.Config{ConnectionString: os.Getenv("CONNECTION_STRING")}
-	log.Println(dbConfig)
-	client, _ := postgres.NewClient(dbConfig)
+	dbConfig := config.PostgresConfig{}
+	config.SetDbConfig(&dbConfig)
+	dbClient, err := postgres.NewClient(dbConfig)
 
-	return client
+	if err != nil {
+		log.Fatalf("Error creating db client: %v", err)
+	}
+
+	return dbClient
 }
 
 func setup() {
 
-	if err := godotenv.Load("../configs/test.env"); err != nil {
+	path, err := config.FetchConfigPath()
+	log.Print(path)
+	if err != nil {
+		log.Fatalf("Error patching config path: %v", err)
+	}
+	if err = config.IncludeEnv(path); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	} else {
 		log.Println("Successfully loaded .env file")

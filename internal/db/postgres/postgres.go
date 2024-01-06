@@ -1,55 +1,56 @@
 package postgres
 
 import (
-	"log"
-
-	"github.com/jmoiron/sqlx"
+	"errors"
+	"fmt"
 
 	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
+	"github.com/zomgra/tracker/pkg/config"
 )
 
 type Client struct {
-	db *sqlx.DB
+	Db *sqlx.DB
 }
 
-func NewClient(config Config) (*Client, error) {
+func NewClient(config config.PostgresConfig) (*Client, error) {
 	db, err := newDB(config)
 	if err != nil {
 		return nil, err
 	}
-	client := &Client{db: db}
+	client := &Client{Db: db}
 	return client, nil
 }
 
-func newDB(config Config) (*sqlx.DB, error) { // Realize catching errors hier
+func newDB(config config.PostgresConfig) (*sqlx.DB, error) {
 
-	db, err := sqlx.Connect("postgres", config.ConnectionString)
+	db, err := sqlx.Connect("postgres", config.ConnectionUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(config.MaxOpenConn)
+	db.SetMaxIdleConns(config.MaxIdleConn)
 	return db, nil
 }
 
 func (c *Client) Insert(barcode string) error {
 	query := `INSERT INTO shipments (barcode) VALUES ($1)`
 
-	_, err := c.db.Exec(query, barcode)
+	_, err := c.Db.Exec(query, barcode)
 	if err != nil {
-		log.Panic("Error with insert shipment", err)
+		return errors.New(fmt.Sprintf("Error with insert shipment: %s", err.Error()))
 	}
 	return nil
 }
 
 func (c *Client) Exists(barcode string) (bool, error) {
-	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1` // Limit for avoid bugs in future
+	query := `SELECT * FROM shipments WHERE barcode = $1 LIMIT 1`
 
-	row := c.db.QueryRow(query, barcode)
+	row := c.Db.QueryRow(query, barcode)
 
 	var foundingShipmentBarcode string
 	err := row.Scan(&foundingShipmentBarcode)
@@ -62,7 +63,7 @@ func (c *Client) Exists(barcode string) (bool, error) {
 
 func (c *Client) InjectDataTo(ch chan any) error {
 
-	tx, err := c.db.Begin()
+	tx, err := c.Db.Begin()
 	query := "DECLARE cursor_shipment CURSOR FOR SELECT * FROM shipments;"
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -77,9 +78,8 @@ func (c *Client) InjectDataTo(ch chan any) error {
 		var barcode string
 
 		if err := rows.Scan(&barcode); err != nil {
-			//return err
-			//catch error
 			c.Close()
+			return err
 		}
 		ch <- barcode
 	}
@@ -90,5 +90,5 @@ func (c *Client) InjectDataTo(ch chan any) error {
 }
 
 func (c *Client) Close() error {
-	return c.db.Close()
+	return c.Db.Close()
 }

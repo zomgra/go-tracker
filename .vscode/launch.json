@@ -11,8 +11,7 @@
         "mode": "debug",
         "program": "${workspaceFolder}/cmd/tracker/",
         "env": {
-          "APPLICATION_PORT" : "8000",
-          "CONNECTION_STRING": "postgresql://postgres:password@localhost:5432/postgresDB?sslmode=disable"
+          "TRACKER_CONFIG_PATH":"C:/Users/hiban/source/repos/go-bitbucket/configs/app.env"
         }
       }
      ]

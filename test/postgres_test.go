@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/zomgra/tracker/pkg/barcode"
 	"github.com/zomgra/tracker/pkg/bloomfilter"
+	"github.com/zomgra/tracker/pkg/config"
 )
 
 func createShipmentTest(t *testing.T, barcode string) {
@@ -32,8 +33,10 @@ func TestIncludingShipment(t *testing.T) {
 
 func TestInjectingFromDb(t *testing.T) {
 	n := 5
+	bloomConfig := config.BloomFilterConfig{}
+	config.SetBloomConfig(&bloomConfig)
 	barcodes := make(chan string, n)
-	filter := bloomfilter.NewBloomFilterHelper()
+	filter := bloomfilter.NewBloomFilterHelper(&bloomConfig)
 	for i := 0; i < n; i++ {
 		barcode := barcode.GenerateBarCode(2, 2)
 		createShipmentTest(t, barcode)

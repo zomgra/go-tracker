@@ -8,21 +8,20 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/zomgra/tracker/internal/interfaces"
 )
 
 type Handler struct {
-	shipmentRepository interfaces.Repository[Shipment]
+	service *Service
 }
 
-func NewHandler(shipmentRepository interfaces.Repository[Shipment]) *Handler {
-	return &Handler{shipmentRepository: shipmentRepository}
+func NewHandler(s *Service) *Handler {
+	return &Handler{service: s}
 }
 
 func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	ok, err := h.shipmentRepository.Check(barcode)
+	ok, err := h.service.CheckShipment(barcode)
 
 	if ok {
 		returnJson(w, ok, 200)
@@ -41,7 +40,7 @@ func (s *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		ship := Shipment{}
 		ship.GenerateShipment()
 
-		err := s.shipmentRepository.Add(ship)
+		err := s.service.AddShipment(ship)
 		if err != nil {
 			returnJson(w, fmt.Sprintf("error with creating shipment: %v ", err), 500)
 		}

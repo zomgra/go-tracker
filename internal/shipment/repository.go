@@ -1,41 +1,25 @@
 package shipment
 
 import (
-	"encoding/json"
-	"log"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/zomgra/tracker/internal/interfaces"
 	"github.com/zomgra/tracker/pkg/bloomfilter"
 	"github.com/zomgra/tracker/pkg/db"
 )
 
-type ShipmentRepository struct {
-	bloomfilterIsReady bool
-	dbClient           db.Client
-	bloomHelper        *bloomfilter.Helper
+// CLEAR BLOOM
+type Repository struct {
+	dbClient db.Client
 }
 
-func NewRepository(dbClient db.Client) interfaces.Repository[Shipment] {
-	bloomHelper := bloomfilter.NewBloomFilterHelper()
+func NewRepository(dbClient db.Client) RepositoryInterface[Shipment] {
 
-	return &ShipmentRepository{bloomHelper: bloomHelper, dbClient: dbClient, bloomfilterIsReady: false}
+	return &Repository{dbClient: dbClient}
 }
 
-func (r *ShipmentRepository) LoadEnding() {
-	r.bloomfilterIsReady = true
-}
+func (r *Repository) Add(s Shipment) error {
 
-func (r *ShipmentRepository) Add(s Shipment) error {
-
-	barcodeByte, err := json.Marshal(s.Barcode)
-
-	if err != nil {
-		return err
-	}
-
-	r.bloomHelper.Add(barcodeByte)
-
-	err = r.dbClient.Insert(s.Barcode)
+	err := r.dbClient.Insert(s.Barcode)
 
 	if err != nil {
 		return err
@@ -43,17 +27,7 @@ func (r *ShipmentRepository) Add(s Shipment) error {
 	return nil
 }
 
-func (r *ShipmentRepository) Check(id string) (bool, error) {
-
-	barcodeByte, _ := json.Marshal(id)
-	if r.bloomfilterIsReady {
-		log.Println("Using bloomfilter")
-
-		ok := r.bloomHelper.Check(barcodeByte)
-		if !ok {
-			return false, nil
-		}
-	}
+func (r *Repository) Check(id string) (bool, error) {
 
 	ok, err := r.dbClient.Exists(id)
 
@@ -64,12 +38,10 @@ func (r *ShipmentRepository) Check(id string) (bool, error) {
 
 	return ok, nil
 }
-func (r *ShipmentRepository) InjectFromDB(ec chan error) {
-	r.bloomfilterIsReady = false
-	err := r.bloomHelper.Inject(r.dbClient.InjectDataTo)
+func (r *Repository) InjectFromDB(ec chan error, h bloomfilter.BloomHelper) {
+	err := h.Inject(r.dbClient.InjectDataTo)
 	if err != nil {
 		ec <- err
 		return
 	}
-	r.bloomfilterIsReady = true
 }

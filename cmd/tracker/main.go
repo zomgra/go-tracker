@@ -1,46 +1,44 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/joho/godotenv"
-	"github.com/zomgra/tracker/configs"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/zomgra/tracker/internal/db/postgres"
 	"github.com/zomgra/tracker/internal/shipment"
 	"github.com/zomgra/tracker/internal/web"
-	"github.com/zomgra/tracker/pkg/db/postgres"
+	"github.com/zomgra/tracker/pkg/config"
 )
 
 func main() {
-	dir, err := os.Getwd()
-	//dir = filepath.Dir(filepath.Dir(dir))
-	err = godotenv.Load(dir + "/configs/app.env")
-	if err != nil {
-		log.Fatal(err)
-	}
-	dbconfig := postgres.Config{ConnectionString: os.Getenv("CONNECTION_STRING")}
-	appConfig := configs.ApplicationConfig{Port: os.Getenv("APPLICATION_PORT")}
 
-	dbClient, err := postgres.NewClient(dbconfig)
-	defer dbClient.Close()
+	// Initial logger
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Initial config
+	appConfig := config.ApplicationConfig{}
+	config.MustSetConfig(&appConfig)
+	dbClient, err := postgres.NewClient(*appConfig.DbConfig)
 	if err != nil {
 		// Quick exit app, idk what doing
-		dbClient.Close()
-		os.Exit(1)
+		log.Fatalf("error with connecting to db: %s", err.Error())
 	}
+	defer dbClient.Close()
 
 	shipmentRepository := shipment.NewRepository(dbClient)
-	handler := shipment.NewHandler(shipmentRepository)
+	shipmentService := shipment.NewService(shipmentRepository)
+	handler := shipment.NewHandler(shipmentService)
 
 	r := web.NewRoutes(handler)
 
 	injectionErrorChan := make(chan error)
 
 	go func() {
-		shipmentRepository.InjectFromDB(injectionErrorChan)
+		shipmentService.InjectFromDB(injectionErrorChan)
 	}()
 
 	go func() {
